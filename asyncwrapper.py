@@ -4,10 +4,10 @@ class TaskWrapper:
     def __init__(self, *args, **kwargs) -> None:
         pass
 
-    def __enter__(self):
+    def __aenter__(self):
         pass
 
-    def __exit__(self, exc_type, exc_value, trace):
+    def __aexit__(self, exc_type, exc_value, trace):
         pass
 
     def __await__(self):
@@ -17,16 +17,20 @@ class TaskWrapper:
 # USAGE:
 
 def other_tasks():
-    pass
+    pass # processar html
 
 def some_tasks(load_result):
-    pass
+    pass # processar resultado query banco de dados
 
 async def load():
-    with await TaskWrapper() as wrapper:
+    async with await TaskWrapper() as wrapper:
         some_tasks(wrapper.results)
     other_tasks() # other_tasks is executed until wrapper gets a result. Then the code inside context manager is executed
-                  # If load() terminates before wrapper, the termination is halted until the context manager terminates
+    other_tasks() # If load() terminates before wrapper, the termination is halted until the context manager terminates
+    other_tasks()
+    other_tasks() # wrapper foi carregado aqui
+    other_tasks() # so é chamado depois que o codigo do context manager for executado
+
 
 # EQUIVALENT TO:
 
@@ -41,6 +45,7 @@ async def load():
 
 # async def load():
 #     task = asyncio.create_task(load_result())
-#     other_tasks()
+#     other_tasks() (X4, in this case) 
 #     await asyncio.gather(task)
 #     some_tasks(task.result())
+#     other_tasks() (X1)
